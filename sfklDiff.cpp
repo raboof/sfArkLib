@@ -18,8 +18,9 @@
 // along with sfArkLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "WcC.h"
+#include "wcc.h"
 #include <stdio.h>
+#include <string.h>
 
 // =========================================================================
  void UnBufDif2(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev)

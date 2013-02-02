@@ -23,7 +23,7 @@
 #endif
 #endif
 
-#include	"sfarklib.h"
+#include	"sfArkLib.h"
 
 // ------------------------------------------------------------------------------------
 // The following are now defined in sfarklib.h ... redefined here for compatibility...
