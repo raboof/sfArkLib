@@ -17,14 +17,58 @@
 // You should have received a copy of the GNU General Public License
 // along with sfArkLib.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef	__BIG_ENDIAN__
+#ifndef __LITTLE_ENDIAN__
+#error ENDIAN system undefined
+#endif
+#endif
 
 #include	"sfarklib.h"
 
+// ------------------------------------------------------------------------------------
+// The following are now defined in sfarklib.h ... redefined here for compatibility...
+#define	MAX_FILENAME	SFARKLIB_MAX_FILENAME
+#define	MAX_FILEPATH	SFARKLIB_MAX_FILEPATH
+#define	MAX_MSGTEXT	SFARKLIB_MAX_MSGTEXT
+#define	MSG_SameLine	SFARKLIB_MSG_SameLine
+#define	MSG_AppendLine	SFARKLIB_MSG_AppendLine
+#define	MSG_PopUp	SFARKLIB_MSG_PopUp
+
+#define	msg(a, b)		sfkl_msg(a, b)			// Message display function
+#define UpdateProgress(a)	sfkl_UpdateProgress(a)		// Progress indication
+#define GetLicenseAgreement(a, b) sfkl_GetLicenseAgreement(a, b)// Display/confirm license
+#define DisplayNotes(a, b)	sfkl_DisplayNotes(a, b)		// Display notes text file
+#define GetsfArkLibVersion(a)	sfkl_GetVersion(a)
+#define Decode(a, b)		sfkl_Decode(a, b)
+// ------------------------------------------------------------------------------------
+
+// -------- Global flags and data ----------
+#ifdef	SFARKLIB_GLOBAL		// Compiling main file?
+    //bool	Aborted;
+    int	GlobalErrorFlag;
+    const char ProgName[]		= "sfArkLib";
+    const char ProgVersion[]		= " 2.21";	// 5 characters xx.xx
+    const unsigned char ProgVersionMaj 	= 22;		// 0-255 = V0 to V25.5xx, etc.
+    const unsigned char ProgVersionMin 	= 10;		// 0-99  = Vx.x99, etc.
+    char	MsgTxt[MAX_MSGTEXT];				// Used with sprintf to build message									// Text buffer for msg()
+    unsigned SourceFileOffset = 0;			// Set non-zero by app for self-extraction
+#else	
+    //extern	bool	Aborted;
+    extern	int	GlobalErrorFlag;
+    extern	char	*MsgTxt;
+
+    extern	const char *ProgName;				// e.g. "sfArkLib"
+    extern	const char *ProgVersion;			// e.g."2.10 "
+    extern	const unsigned char 	ProgVersionMaj;		// 00-255 = V25.5x, etc.
+    extern	const unsigned char 	ProgVersionMin;		// 00-99 = Vx.x99, etc.
+    extern	unsigned SourceFileOffset;			// Set non-zero by app for self-extraction
+#endif
+
 // ----- typdefs -----
 typedef unsigned short		USHORT;
-typedef unsigned char			BYTE;
-typedef unsigned long			ULONG;
-//typedef int								bool;
+typedef unsigned char		BYTE;
+typedef unsigned long		ULONG;
+//typedef int			bool;
 
 typedef short							AWORD;				// Audio word (i.e., 16-bit audio)
 typedef unsigned short		UAWORD;
@@ -41,7 +85,7 @@ typedef ULONG						BIOWORD2;
 // ----- Constants -----
 #ifndef true
 #define true    1
-#define false		0
+#define false	0
 #endif
 
 #define SHIFTWIN 64       // window size used for shift operations
@@ -78,9 +122,16 @@ typedef ULONG						BIOWORD2;
 
 // ----------------------
 
-
-
 // ------ Macros -------
+#define	RETURN_ON_ERROR()	if (GlobalErrorFlag != SFARKLIB_SUCCESS)  return(GlobalErrorFlag)
+#define	JUMP_ON_ERROR(label)	if (GlobalErrorFlag != SFARKLIB_SUCCESS)  goto label
+
+#ifdef	__BIG_ENDIAN__
+    #define FIX_ENDIAN16(w)	((((BYTE) w) << 8) | (((USHORT)w) >> 8))
+#else
+    #define FIX_ENDIAN16(w)	(w)	
+#endif
+
 #define BIT_SIZEOF(x)   (sizeof(x) * 8)
 #define AWORD_BITS      BIT_SIZEOF(AWORD)	// Number of bits in Audio Word
 
@@ -114,39 +165,43 @@ typedef ULONG						BIOWORD2;
 // Fast division using Shift for Signed numbers
 #define SDIV(x, y)      ( ((x) >= 0)? (x) >> (y) : -((-(x)) >> (y)) )
 
-
 // ------- Prototypes -------
 
+// sfArkLib_Coding...
+//extern USHORT	GetsfArkLibVersion(void);
+//extern int 	Decode(const char *InFileName, const char *ReqOutFileName);
+extern void	FixEndian(void *num, int nsize);
+
 // sfArkLib_Diff...
-extern long		BufSum(const AWORD *buf, USHORT bufsize);
-extern void		UnBufDif2(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
-extern void		UnBufDif4(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
-extern void		UnBufDif3(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
-extern void   UnBufShift(AWORD *Buf, USHORT SizeOfBuf, short *Shifts);
+extern long	BufSum(const AWORD *buf, USHORT bufsize);
+extern void	UnBufDif2(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
+extern void	UnBufDif4(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
+extern void	UnBufDif3(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev);
+extern void	UnBufShift(AWORD *Buf, USHORT SizeOfBuf, short *Shifts);
 
 // sfArkLib_Crunch...
-extern long		UnCrunchWin(AWORD *Buf, USHORT BufSize, USHORT WinSize);
-extern void		BioDecompInit(void);
-extern void		BioDecompEnd(void);
-extern BIOWORD BioRead(int NumberOfBits);
-extern bool		BioReadFlag(void);
-extern long		BioReadBuf(BYTE *Buf, long BufSize);
+extern long	UnCrunchWin(AWORD *Buf, USHORT BufSize, USHORT WinSize);
+extern void	BioDecompInit(void);
+extern void	BioDecompEnd(void);
+extern BIOWORD	BioRead(int NumberOfBits);
+extern bool	BioReadFlag(void);
+extern long	BioReadBuf(BYTE *Buf, long BufSize);
 extern AWORD	InputDiff(AWORD PrevValue);
 extern short	GetNBits(short w);
 
 // sfArkLib_File (or supplied by SDL.cpp)...
-extern void		OpenOutputFile(const char *FileName);
-extern void		OpenInputFile(const char *FileName);
-extern int		ReadInputFile(BYTE *Buf, int NumberOfBytesToRead);
-extern int		WriteOutputFile(const BYTE *Buf, int NumberOfBytesToWrite);
-extern bool		SetInputFilePosition(int NewPos);
-extern bool		SetOutputFilePosition(int NewPos);
-extern void		CloseInputFile(void);
-extern void		CloseOutputFile(void);
+extern void	OpenOutputFile(const char *FileName);
+extern void	OpenInputFile(const char *FileName);
+extern int	ReadInputFile(BYTE *Buf, int NumberOfBytesToRead);
+extern int	WriteOutputFile(const BYTE *Buf, int NumberOfBytesToWrite);
+extern bool	SetInputFilePosition(int NewPos);
+extern bool	SetOutputFilePosition(int NewPos);
+extern void	CloseInputFile(void);
+extern void	CloseOutputFile(void);
 
 // sfArkLib_LPC...
-extern void		LPCinit(void);
-extern long		UnLPC(AWORD *OutBuf, AWORD *InBuf, short bufsize, short nc, ULONG *Flags);
+extern void	LPCinit(void);
+extern long	UnLPC(AWORD *OutBuf, AWORD *InBuf, short bufsize, short nc, ULONG *Flags);
 
 // sfArkLib_Zip...
 extern ULONG	UnMemcomp(const BYTE *InBuf, int InBytes, BYTE *OutBuf, int OutBufLen);

@@ -17,28 +17,29 @@
 // You should have received a copy of the GNU General Public License
 // along with sfArkLib.  If not, see <http://www.gnu.org/licenses/>.
 
+#include	<stdio.h>
+#include	<string.h>
 
 #include	"wcc.h"
 #include	"zlib.h"
-#include	"stdio.h"
 
 ULONG	UnMemcomp(const BYTE *InBuf, int InBytes, BYTE *OutBuf, int OutBufLen)
 {
-	// Uncompress buffer using ZLIBs uncompress function...
-	ULONG	OutBytes = OutBufLen;
-	int Result = uncompress(OutBuf, &OutBytes, InBuf, InBytes);
-  if (Result != Z_OK)				// uncompress failed?
-	{
-		sprintf(MsgTxt, "ZLIB uncompress failed: %d\n", Result);
-    msg(MsgTxt, MSG_PopUp);
-    Aborted = true;
-		OutBytes = 0;
-		if (Result == Z_MEM_ERROR)
-			GlobalErrorFlag = SFARKLIB_ERR_MALLOC;
-		else
-			GlobalErrorFlag = SFARKLIB_ERR_CORRUPT;
-	}
+    // Uncompress buffer using ZLIBs uncompress function...
+    ULONG	OutBytes = OutBufLen;
+    int Result = uncompress(OutBuf, &OutBytes, InBuf, InBytes);
+    if (Result != Z_OK)				// uncompress failed?
+    {
+        printf("ZLIB uncompress failed: %d\n", Result);
+        //sprintf(MsgTxt, "ZLIB uncompress failed: %d", Result);
+        //msg(MsgTxt, MSG_PopUp);
+        OutBytes = 0;
+        if (Result == Z_MEM_ERROR)
+            GlobalErrorFlag = SFARKLIB_ERR_MALLOC;
+        else
+            GlobalErrorFlag = SFARKLIB_ERR_CORRUPT;
+    }
 
-  return OutBytes;
+    return OutBytes;
 }
 

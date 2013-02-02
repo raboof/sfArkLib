@@ -19,8 +19,7 @@
 
 
 #include "WcC.h"
-
-#define CHECK_DIF 0             // Check BufDif procedures (debug)
+#include <stdio.h>
 
 // =========================================================================
  void UnBufDif2(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev)
@@ -58,7 +57,7 @@
 }
 
 // =========================================================================
- void UnBufDif3(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev)
+ void old_UnBufDif3(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev)
 {
   // Decoding is done from the END of the buffer, backwards...
 
@@ -70,11 +69,45 @@
   // Process end of buffer...
   *OutBuf-- = *InBuf--;
 
+  //-----------------------------------------
+  #define DO_ONE(N)  OutBuf[N] = InBuf[N] + NSDIV(InBuf[N-1] + OutBuf[N+1], 1);
   // Process rest of buffer...
+  while (InBuf > bufstart) { DO_ONE(0); InBuf--; OutBuf--; }
+
+  // Final word
+  *OutBuf = *InBuf + NSDIV(OutBuf[1], 1);
+
+  *prev = OutBuf[bufsize-1];
+  return;
+  #undef DO_ONE
+}
+
+
+ void UnBufDif3(AWORD *OutBuf, const AWORD *InBuf, USHORT bufsize, AWORD *prev)
+{
+  // Decoding is done from the END of the buffer, backwards...
+
   #define STEPSIZE 8
+  const AWORD *bufstart = InBuf, *bufstart1 = InBuf+STEPSIZE;
+
+  InBuf += bufsize-1;
+  OutBuf+= bufsize-1;
+
+  // Process end of buffer...
+  *OutBuf-- = *InBuf--;
+
+  // Process rest of buffer...
   //-----------------------------------------
   #define DO_ONE(N)  OutBuf[N] = InBuf[N] + NSDIV(InBuf[N-1] + OutBuf[N+1], 1);
   //-----------------------------------------
+
+  // Process most of buffer...
+  while (InBuf > bufstart1) 
+  {
+    DO_ONE(0); DO_ONE(-1);DO_ONE(-2);DO_ONE(-3);
+    DO_ONE(-4);DO_ONE(-5);DO_ONE(-6);DO_ONE(-7);
+    InBuf-=STEPSIZE; OutBuf-=STEPSIZE;
+  }
 
   // Process rest of buffer...
   while (InBuf > bufstart) { DO_ONE(0); InBuf--; OutBuf--; }
@@ -85,6 +118,7 @@
   *prev = OutBuf[bufsize-1];
   return;
   #undef DO_ONE
+  #undef STEPSIZE
 }
 
 // =========================================================================

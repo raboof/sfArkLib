@@ -19,17 +19,18 @@
 
 
 #include "WcC.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
 
 // Static table to store number of bits per word...
-static nb_init = 0;
+static BYTE nb_init = 0;
 static BYTE nb[1 << (AWORD_BITS-1)]; // Array to hold number of bits needed to represent each unsigned short value
 
 // =========================================================================
 // Macros for Bit I/O (BIO) ....
 
 // Static buffer and pointers....
-  #define BIO_WBITS     (8 * sizeof(BIOWORD))
+  #define BIO_WBITS     ((signed) (8 * sizeof(BIOWORD)))
   #define BIOBUFSIZE    (16 * 1024)	// Disk-read buffer size, bigger may increased speed
 
   BIOWORD2 bioBits;					// Bits not yet shifted from bioBuf (up to double length of BIOWORD)
@@ -43,12 +44,11 @@ static BYTE nb[1 << (AWORD_BITS-1)]; // Array to hold number of bits needed to r
 // --------------------------------------------------------------------------
 #define GRP_INBITS(g)                           \
   /* Get grp value from input by counting number of zeroes before we get a 1 */\
-{                                               \
   g = 0;                                        \
   while (bioBits == 0)                          \
   {                                             \
     g += bioRemBits;                            \
-    CHECK_INBUFFER;                             \
+    CHECK_INBUFFER                              \
     bioBits = bioBuf[bioP++];                   \
     bioRemBits = BIO_WBITS;                     \
   }                                             \
@@ -56,33 +56,55 @@ static BYTE nb[1 << (AWORD_BITS-1)]; // Array to hold number of bits needed to r
   g += bioRemBits;                              \
   while ((bioBits >> --bioRemBits) != 1);       \
   g -= bioRemBits+1;                            \
-  bioBits = LOWBITS(bioBits, bioRemBits);    \
-}
+  bioBits = LOWBITS(bioBits, bioRemBits)    
 
 // --------------------------------------------------------------------------
 #define INBITS(w, n)                            \
   /* Input value w using n bits (n must be <= BIO_WBITS) ... */\
-{                                               \
   if (bioRemBits < BIO_WBITS)                   \
   {                                             \
-    CHECK_INBUFFER;                             \
+    CHECK_INBUFFER                              \
     bioBits = (bioBits << BIO_WBITS) | bioBuf[bioP++]; \
     bioRemBits += BIO_WBITS;                    \
   }                                             \
   bioRemBits -= n;                              \
   w = (BIOWORD) (bioBits >> bioRemBits);        \
-  bioBits = LOWBITS(bioBits, bioRemBits);		\
-}
-
+  bioBits = LOWBITS(bioBits, bioRemBits)		
+  
 // =========================================================================
+#ifdef	__BIG_ENDIAN__
+
+#define	WFIX(I)		s = bp[I+0]; bp[I+0] = bp[I+1]; bp[I+1] = s;
+// Read from disk if needed, and fix endians
 #define CHECK_INBUFFER                          \
   if (bioP == BIOBUFSIZE)                       \
   {                                             \
     bioWholeBlocks++;                           \
     bioP = 0;                                   \
     int ReadLen = ReadInputFile((BYTE *) bioBuf, BIOBUFSIZE * sizeof(BIOWORD)); \
-    if (ReadLen <= 0)  return 0;								\
-  }                                             \
+    if (ReadLen <= 0)  return 0;		\
+    BYTE *bp = (BYTE *) bioBuf, *ep = (BYTE *) (bioBuf+BIOBUFSIZE); \
+    do {					\
+        BYTE s;					\
+        WFIX(0); WFIX(2); WFIX(4); WFIX(6);	\
+        WFIX(8); WFIX(10); WFIX(12); WFIX(14);	\
+        bp += 16;				\
+    } while (bp < ep);				\
+  }
+
+#else
+// Read from disk if needed...
+#define CHECK_INBUFFER                          \
+  if (bioP == BIOBUFSIZE)                       \
+  {                                             \
+    bioWholeBlocks++;                           \
+    bioP = 0;                                   \
+    int ReadLen = ReadInputFile((BYTE *) bioBuf, BIOBUFSIZE * sizeof(BIOWORD)); \
+    if (ReadLen <= 0)  return 0;				\
+  }
+
+#endif
+
 // --------------------------------------------------------------------------
 // End of macros
 // --------------------------------------------------------------------------
@@ -141,7 +163,7 @@ long BioReadBuf(BYTE *buf, long n)
 AWORD	InputDiff(AWORD Prev)
 // Read a value from input as difference from Previous value, return new value
 {
-	AWORD x;
+  AWORD x;
 
   GRP_INBITS(x);
   if (x != 0)								// If non-zero, check sign bit
