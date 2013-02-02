@@ -29,6 +29,14 @@
 //		Major re-write to ReadHeader function, supports any size of self-extraction code in sfArk.exe files.
 // 2.21	25-09-02 Fixed byte order on output samples (for MacOS).
 
+// 2.22 27-09-03 Fixed bug in call to UpdateProgress which reset to zero with large files when bytes
+//		written greater than (1<<31)/100 (approx 20MB) -- was due to 32-bit integer overflow
+//		Added more floating-point precision conversions in LPC to tighten-up on Mac compatibility issues
+//		Avoid potential bug in WriteOutputFile, now test BytesWritten != BytesToWrite instead of <= 0
+//		Fixed rare bug when POST_AUDIO is more than ZBUF_SIZE (256kb) uncompressed (affected RealFont_2_1.sfArk)
+
+// 2.23 02-10-03 LPC Speeded up, now double the speed of earlier versions (on Intel at least)
+
 // CLIB headers...
 #include	<string.h>
 #include	<stdio.h>
@@ -92,7 +100,6 @@ typedef struct
 #define HEADER_HDRCHECK_POS	16		// Byte position of HeaderCheck field in header
 #define HEADER_SIG_POS		26		// Byte position of "sfArk" signautre in header
 #define HEADER_MAX_OFFSET	(128*1024) 	// Maximum search extent: maximum expected size of "self-extractor" code.
-                                                // NB: Don't put too many in list, otherwise it may be faster too search all positions!
 
 // FileHeader Flags...
 #define	FLAGS_Notes		(1 << 0)	// Notes file included
@@ -162,15 +169,15 @@ char *ChangeFileExt(char *OutFileName, const char *NewExt, int OutFileNameSize)
 // Read the File Header....
 int ReadHeader(V2_FILEHEADER *FileHeader, BYTE *fbuf, int bufsize)
 {
-  int HeaderLen, HdrOffset;
+  int HeaderLen = 0, HdrOffset;
   char	CreatedByProg[HDR_NAME_LEN +1],  CreatedByVersion[HDR_VERS_LEN +1];
-  ULONG	CalcHdrCheck;
+  ULONG	CalcHdrCheck = 0;
   BYTE *HdrBuf, *bpFileHeader = (BYTE *) FileHeader;
 
   // Find and process the Header:  This could be a plain sfArk file, a self-extracting file or some other (invalid) file.
   // Also, it could be a sfArk V1 file, which we can't decompress, but should at least recognise.
   // We locate the header by looking for the string "sfArk" within the first HEADER_MAX_OFFSET bytes of the file
-  // but becuase self-extractor code is likely to contain that string, we look for its final occurence
+  // but because self-extractor code is likely to contain that string, we look for its final occurence
   // by searching backwards.
   // To speed things up, we first check at offset 0 (the case for a standard sfArk file)
   // If we think we've found a (V2) header, we veryify it using the Header checksum.  If the checksum fails,
@@ -540,29 +547,29 @@ int ProcessNextBlock(BLOCK_DATA *Blk)
 	BioReadBuf((BYTE *) &n, sizeof(n));	
 	FixEndian(&n, sizeof(n));
 	//printf("Reading PRE/POST AUDIO block, compressed %ld bytes\n", n);
-
-	if (n < 0  ||  n > ZBUF_SIZE)																			// Check for valid block length
+	if (n < 0  ||  n > ZBUF_SIZE)	// Check for valid block length
 	{
 	  sprintf(MsgTxt, "ERROR - Invalid length for Non-audio Block (apparently %ld bytes) %s", n, CorruptedMsg);
 	  msg(MsgTxt, MSG_PopUp);
 	  return (GlobalErrorFlag = SFARKLIB_ERR_CORRUPT);
 	}
 
-	BioReadBuf(zSrcBuf, n);																							// Read the block
-	m = UnMemcomp(zSrcBuf, n, zDstBuf, ZBUF_SIZE);											// Uncompress
+	BioReadBuf(zSrcBuf, n);		// Read the block
+	m = UnMemcomp(zSrcBuf, n, zDstBuf, ZBUF_SIZE);											//printf("PRE/POST AUDIO block, compressed %ld bytes, uncompressed %ld bytes\n", n, m);
+
+	// Uncompress
 	if (GlobalErrorFlag != SFARKLIB_SUCCESS)  return(GlobalErrorFlag);
-	//printf("PRE/POST AUDIO block, uncompressed %ld bytes\n", m);
 	if (m <= ZBUF_SIZE)														// Uncompressed ok & size is valid?
 	{
 	  //printf("writing uncompressed block %ld bytes\n", m);
-	  Blk->FileCheck = adler32(Blk->FileCheck, zDstBuf, m);	   					// Accumulate checksum
-	  WriteOutputFile(zDstBuf, m);																			// and write to output file
-	  Blk->TotBytesWritten += m;																				// Accumulate byte count
+	  Blk->FileCheck = adler32(Blk->FileCheck, zDstBuf, m);	// Accumulate checksum
+	  WriteOutputFile(zDstBuf, m);				// and write to output file
+	  Blk->TotBytesWritten += m;				// Accumulate byte count
 	}
 	else
 	  return SFARKLIB_ERR_CORRUPT;
 
-	#if	DB_BLOCKCHECK											// If debug mode block check enabled
+	#if	DB_BLOCKCHECK					// If debug mode block check enabled
 	ULONG BlockCheck = BioRead(16);				// Read block check bits
 	FixEndian(&BlockCheck, sizeof(Blockcheck));
 	ULONG CalcBlockCheck = adler32(0, zDstBuf, m) & 0xFFFF;
@@ -577,17 +584,11 @@ int ProcessNextBlock(BLOCK_DATA *Blk)
 
 	//printf("PRE/POST AUDIO, read %ld bytes, writing %ld bytes...", n, m);
 
-	if (Blk->TotBytesWritten >= Blk->FileHeader.OriginalSize)						// Have we finished the file?
+        if (Blk->TotBytesWritten >= Blk->FileHeader.OriginalSize)	// Have we finished the file?
 	  Blk->FileSection = FINISHED;
-	else if (Blk->TotBytesWritten >= Blk->FileHeader.AudioStart)				// Else, have we finished Pre-Audio?
-	  Blk->FileSection = AUDIO;																					// .. then next section is Audio
-	else
-	{
-	  // For SF2, we don't expect anything after post-audio section so...
-	  sprintf(MsgTxt, "ERROR - Unexpected file section %s", CorruptedMsg);
-	  msg(MsgTxt, MSG_PopUp);
-	  return (GlobalErrorFlag = SFARKLIB_ERR_CORRUPT);
-	}
+	else if (Blk->FileSection == PRE_AUDIO && Blk->TotBytesWritten >= Blk->FileHeader.AudioStart)	// finished Pre-Audio?
+	  Blk->FileSection = AUDIO;					// .. then next section is Audio
+
 	break;
       } // case
     } //switch
@@ -798,6 +799,7 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 
         ULONG ProgressUpdateInterval = Blk.FileHeader.OriginalSize / 100; // Calculate progress update
 	ULONG NextProgressUpdate = ProgressUpdateInterval;
+        int ProgressPercent = 0;
 	UpdateProgress(0);
 
 	//int BlockNum = 0;
@@ -808,9 +810,9 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
                 //printf("Block: %d\n", ++BlockNum);
 		ProcessNextBlock(&Blk);
 			
-		if (Blk.TotBytesWritten >= NextProgressUpdate)  
+		while (Blk.TotBytesWritten >= NextProgressUpdate)  	// Further 1% done since last UpdateProgress?
                 {
-                    UpdateProgress(100 * Blk.TotBytesWritten / Blk.FileHeader.OriginalSize);
+                    UpdateProgress(++ProgressPercent);
                     NextProgressUpdate += ProgressUpdateInterval;
 		}
   		if (GlobalErrorFlag)  return EndProcess(GlobalErrorFlag);

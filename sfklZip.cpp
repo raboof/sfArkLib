@@ -30,9 +30,8 @@ ULONG	UnMemcomp(const BYTE *InBuf, int InBytes, BYTE *OutBuf, int OutBufLen)
     int Result = uncompress(OutBuf, &OutBytes, InBuf, InBytes);
     if (Result != Z_OK)				// uncompress failed?
     {
-        printf("ZLIB uncompress failed: %d\n", Result);
-        //sprintf(MsgTxt, "ZLIB uncompress failed: %d", Result);
-        //msg(MsgTxt, MSG_PopUp);
+        sprintf(MsgTxt, "ZLIB uncompress failed: %d", Result);
+        msg(MsgTxt, MSG_PopUp);
         OutBytes = 0;
         if (Result == Z_MEM_ERROR)
             GlobalErrorFlag = SFARKLIB_ERR_MALLOC;

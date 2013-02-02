@@ -17,6 +17,8 @@
 // You should have received a copy of the GNU General Public License
 // along with sfArkLib.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <string.h>
+
 const char *GetFileExt(const char *FileName)
 {
   // return pointer to (final) file extension including the dot e.g. '.txt'

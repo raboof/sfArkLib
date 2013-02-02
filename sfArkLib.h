@@ -18,7 +18,18 @@
 // You should have received a copy of the GNU General Public License
 // along with sfArkLib.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+Changes since V1.15
+===================
+All constants now prefixed with SFARKLIB_, and function names prefxied with sfkl_
 
+sfkl_GetLicenseAgreement and sfkl_DisplayNotes functions now both take 2 parameters: the text of the text file
+and the name of the text file. This makes it easier for the application to either display the text itself or pass
+the filename onto some other program.  Mac/Linux users note: the text is probably in Windows format! 
+Future sfArk versions will allow Notes and License files to be of other types than plain text (e.g. HTML, RTF) so
+look at the file extenson in order to decide how to handle it.
+*/
+ 
 // Some max sizes...
 #define	SFARKLIB_MAX_FILENAME	256				// Longest filename handled (or directory name)
 #define	SFARKLIB_MAX_FILEPATH	1024				// Longest full path handled

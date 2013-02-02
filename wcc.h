@@ -47,9 +47,9 @@
     //bool	Aborted;
     int	GlobalErrorFlag;
     const char ProgName[]		= "sfArkLib";
-    const char ProgVersion[]		= " 2.21";	// 5 characters xx.xx
+    const char ProgVersion[]		= " 2.23";	// 5 characters xx.xx
     const unsigned char ProgVersionMaj 	= 22;		// 0-255 = V0 to V25.5xx, etc.
-    const unsigned char ProgVersionMin 	= 10;		// 0-99  = Vx.x99, etc.
+    const unsigned char ProgVersionMin 	= 30;		// 0-99  = Vx.x99, etc.
     char	MsgTxt[MAX_MSGTEXT];				// Used with sprintf to build message									// Text buffer for msg()
     unsigned SourceFileOffset = 0;			// Set non-zero by app for self-extraction
 #else	

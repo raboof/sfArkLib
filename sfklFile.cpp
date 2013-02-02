@@ -120,7 +120,7 @@ int ReadInputFile(BYTE *Buf, int BytesToRead)
   int	BytesRead;
 
   READFILE(InputFileHandle, Buf, BytesToRead, &BytesRead);
-  if (BytesRead <= 0)
+  if (BytesRead < 0)
   {
     ChkErr("read from", InFileName);
     BytesRead = 0;
@@ -133,10 +133,11 @@ int ReadInputFile(BYTE *Buf, int BytesToRead)
 int WriteOutputFile(const BYTE *Buf, int BytesToWrite)
 {
   int	BytesWritten;
-  //printf("WriteOutputFile: Length=%d CRC=%ld\n", BytesToWrite, adler32(0, Buf, BytesToWrite) & 0xffff);
+  //printf("WriteOutputFile: bytes=%d\n", BytesToWrite);
   WRITEFILE(OutputFileHandle, Buf, BytesToWrite, &BytesWritten);
-  if (BytesWritten <= 0)
+  if (BytesWritten != BytesToWrite)
   {
+    //printf("WriteOutputFile error: %d bytes to write, %d bytes written\n", BytesToWrite, BytesWritten);
     ChkErr("write to", OutFileName);
     BytesWritten = 0;
   }

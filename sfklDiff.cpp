@@ -27,6 +27,7 @@
 // NB: This code is optimised for speed - do not change order of operations or data types!!!
 // -----------------------------------------------------------------------------------------
 
+#if 0
   const AWORD *bufend1 = InBuf + bufsize;
 
   // Process start of buffer...
@@ -49,6 +50,34 @@
   while (InBuf < bufend1)  { DO_ONE(0); OutBuf++; InBuf++; };
 
   *prev = OutBuf[-1];
+
+#else
+  const AWORD *bufend1 = OutBuf + bufsize;
+
+  //for (int i = 0; i < bufsize; i++)  OutBuf[i] = InBuf[i];
+  memcpy(OutBuf, InBuf, bufsize*sizeof(AWORD));  
+
+  // Process start of buffer...
+  *OutBuf++ += *prev;
+
+  // Process rest of buffer...
+  #define STEPSIZE 8
+  #define DO_ONE(N)     OutBuf[N] += OutBuf[N-1]; 
+  // ----------------------------------------------------
+
+  const AWORD *bufend2 = bufend1 - STEPSIZE;
+  while (OutBuf < bufend2)
+  {
+    DO_ONE(0); DO_ONE(1); DO_ONE(2); DO_ONE(3);
+    DO_ONE(4); DO_ONE(5); DO_ONE(6); DO_ONE(7);
+    OutBuf += STEPSIZE;
+  }
+
+  // Do final few...
+  while (OutBuf < bufend1)  { *OutBuf++ += OutBuf[-1]; };
+
+  *prev = OutBuf[-1];
+#endif
 
   return;
 
