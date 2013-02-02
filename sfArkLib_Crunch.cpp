@@ -1,5 +1,6 @@
 // BIO (Bit i/o) routines for sfArk / daArk
-// Copyright 1998-2000 Andy Inman, andyi@melodymachine.com
+// Copyright 1998-2000 Andy Inman
+// Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 #include "WcC.h"
 #include "stdio.h"

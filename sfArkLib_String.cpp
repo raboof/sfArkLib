@@ -1,5 +1,6 @@
 //sfArkLib String functions
-// copyright 1998-2000 Andy Inman, andyi@melodymachine.com
+// copyright 1998-2000 Andy Inman
+// Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 //
 const char *GetFileExt(const char *FileName)

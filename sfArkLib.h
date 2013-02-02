@@ -1,5 +1,6 @@
 // Header for sfArkLib
-// copyright 1998-2000, andyi@melodymachine.com
+// copyright 1998-2000 Andy Inman
+// Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 // Some max sizes...
 #define	MAX_FILENAME	256			// Longest filename handled (or directory name)

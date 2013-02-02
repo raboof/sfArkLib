@@ -1,5 +1,6 @@
 //sfArkLib Coding
-//Copyright 1998-2000 Andy Inman, andyi@melodymachine.com
+//Copyright 1998-2000 Andy Inman
+//Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 // V2.11	Initial release (with SDL 0.07)
 // V2.12	Bug fix in UnMemcomp (OutBytes was uninitialised causing crash for some files)

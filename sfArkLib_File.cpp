@@ -1,5 +1,6 @@
 // sfArkLib file i/o
-// copyright 1998-2000, Andy Inman, andyi@melodymachine.com
+// copyright 1998-2000, Andy Inman
+// Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 // NB: When sfArkLib is used with SDL, these functions are replaced
 // by equvalents in sdl.cpp because the linker finds those first.

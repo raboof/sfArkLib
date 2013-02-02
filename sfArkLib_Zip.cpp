@@ -1,5 +1,6 @@
 // sfArkLib	ZLIB interface
-// Copyright 1998-2000 Andy Inman, andyi@melodymachine.com
+// Copyright 1998-2000 Andy Inman
+// Contact via: http://netgenius.co.uk or http://melodymachine.com
 
 #include	"wcc.h"
 #include	"zlib.h"
