@@ -842,19 +842,19 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 
 // ==============================================================
 
-#ifdef	__BIG_ENDIAN__
 // Adjust integer held at *num for this machine's endian system
 void FixEndian(void *num, int nsize)
 {
+#ifdef	__BIG_ENDIAN__
   int i;
   BYTE bb[4];
   for (i = 0; i < nsize; i++)  bb[i] = ((BYTE *) num)[i];
   for (i = 0; i < nsize; i++)  ((BYTE *) num)[i] = bb[nsize-1-i];
-}
 #else 
   #ifndef __LITTLE_ENDIAN__
   #error ENDIAN system undefined
   #endif
 #endif
+}
 
 // ==============================================================
