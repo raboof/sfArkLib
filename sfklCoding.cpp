@@ -41,6 +41,7 @@
 #include	<string.h>
 #include	<stdio.h>
 #include	<stdlib.h>
+#include	<stdint.h>
 
 // sfArk specific headers...
 #define		SFARKLIB_GLOBAL 
@@ -80,19 +81,19 @@ typedef struct
  This will allow sfArk V1 to recoginse this as a .sfArk file (though not decompress it!)
 */
 	{
-	ULONG	Flags;				// 0-3		Bits 0 & 1 used to indicate presence of Notes and License files
-	ULONG	OriginalSize;			// 4-7		Uncompressed file size
-	ULONG	CompressedSize;			// 8-11		Compressed file size (including header)
-	ULONG	FileCheck;			// 12-15	File Checksum
-	ULONG	HdrCheck;			// 16-19	Header Checksum
-	BYTE	ProgVersionNeeded;		// 20		SfArk version needed to unpack this file (20 = Version 2.0x, etc.)
-	char	ProgVersion[HDR_NAME_LEN];	// 21-25	Version string (nn.nn) that created this file (NOT terminated)
-	char	ProgName[HDR_VERS_LEN];		// 26-30	Signature "sfArk" (not terminated)
-	BYTE	CompMethod;			// 31		Compression Method
-	USHORT	FileType;			// 32-33	Currently always 0 (for SF2)
-	ULONG	AudioStart;			// 34-37	Position in original file of start of audio data
-	ULONG	PostAudioStart;			// 38-41	Position in original file of start any data after audio data (e.g. SF2 parameters)
-	char	FileName[MAX_FILENAME];		// 42-297	Original filename, no path (stored variable length, null terminated)
+	uint32_t	Flags;				// 0-3		Bits 0 & 1 used to indicate presence of Notes and License files
+	uint32_t	OriginalSize;			// 4-7		Uncompressed file size
+	uint32_t	CompressedSize;			// 8-11		Compressed file size (including header)
+	uint32_t	FileCheck;			// 12-15	File Checksum
+	uint32_t	HdrCheck;			// 16-19	Header Checksum
+	uint8_t		ProgVersionNeeded;		// 20		SfArk version needed to unpack this file (20 = Version 2.0x, etc.)
+	char		ProgVersion[HDR_NAME_LEN];	// 21-25	Version string (nn.nn) that created this file (NOT terminated)
+	char		ProgName[HDR_VERS_LEN];		// 26-30	Signature "sfArk" (not terminated)
+	uint8_t		CompMethod;			// 31		Compression Method
+	uint16_t	FileType;			// 32-33	Currently always 0 (for SF2)
+	uint32_t	AudioStart;			// 34-37	Position in original file of start of audio data
+	uint32_t	PostAudioStart;			// 38-41	Position in original file of start any data after audio data (e.g. SF2 parameters)
+	char		FileName[MAX_FILENAME];		// 42-297	Original filename, no path (stored variable length, null terminated)
 } V2_FILEHEADER;
 
 // Some extras re. Header structure...
@@ -245,7 +246,7 @@ int ReadHeader(V2_FILEHEADER *FileHeader, BYTE *fbuf, int bufsize)
     printf("FileCheck %lx  HdrCheck %lx  ProgVersionNeeded %d\n", FileHeader->FileCheck, FileHeader->HdrCheck, FileHeader->ProgVersionNeeded);
     printf("AudioStart %ld  PostAudioStart %ld  Orginal filename %s\n", FileHeader->AudioStart, FileHeader->PostAudioStart, FileHeader->FileName);
     #endif
-    *(ULONG *)(HdrBuf+HEADER_HDRCHECK_POS) = 0;			// Zero-out the HeaderChecksum position in the buffer
+    *(uint32_t *)(HdrBuf+HEADER_HDRCHECK_POS) = 0;			// Zero-out the HeaderChecksum position in the buffer
     CalcHdrCheck = adler32(0, HdrBuf, HeaderLen);		// and recalculate the header checksum
     HdrCheckDone = true;
     if (CalcHdrCheck == FileHeader->HdrCheck)  break;		// Check passed: Yes, we've found the header!
@@ -497,7 +498,7 @@ int ProcessNextBlock(BLOCK_DATA *Blk)
     //int	TotBytesRead = 0;						// Total bytes read in file
     int	NumWords;							//
 
-    ULONG	n, m;							// NB: Must be 32-bit integer
+    uint32_t	n, m;							// NB: Must be 32-bit integer
 
     #define	AWBYTES	(sizeof(AWORD))
     BYTE *zSrcBuf = (BYTE *) Blk->SrcBuf;
