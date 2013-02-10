@@ -12,6 +12,6 @@ clean:
 libsfark.so: $(OBJECTS)
 	$(CXX) -shared $(OBJECTS) -o libsfark.so
 
-install: sfArkLib.so sfArkLib.h
+install: libsfark.so sfArkLib.h
 	cp libsfark.so $(DESTDIR)/usr/local/lib
 	cp sfArkLib.h $(DESTDIR)/usr/local/include
