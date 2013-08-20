@@ -821,8 +821,8 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
             // CheckForCancel();
             if (GlobalErrorFlag)  return EndProcess(GlobalErrorFlag);
 	}
-
-	UpdateProgress(100);
+	
+	if (ProgressPercent != 100)  UpdateProgress(100);
 
     // Check the CheckSum...
     if (Blk.FileCheck != FileHeader->FileCheck)
