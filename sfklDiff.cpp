@@ -75,7 +75,10 @@
   }
 
   // Do final few...
-  while (OutBuf < bufend1)  { *OutBuf++ += OutBuf[-1]; };
+  while (OutBuf < bufend1)  { 
+    *OutBuf += OutBuf[-1]; 
+    OutBuf++;
+  };
 
   *prev = OutBuf[-1];
 #endif
