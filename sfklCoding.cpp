@@ -548,9 +548,9 @@ int ProcessNextBlock(BLOCK_DATA *Blk)
 	BioReadBuf((BYTE *) &n, sizeof(n));	
 	FixEndian(&n, sizeof(n));
 	//printf("Reading PRE/POST AUDIO block, compressed %ld bytes\n", n);
-	if (n < 0  ||  n > ZBUF_SIZE)	// Check for valid block length
+	if (n > ZBUF_SIZE)	// Check for valid block length
 	{
-	  sprintf(MsgTxt, "ERROR - Invalid length for Non-audio Block (apparently %ld bytes) %s", n, CorruptedMsg);
+	  sprintf(MsgTxt, "ERROR - Invalid length for Non-audio Block (apparently %d bytes) %s", n, CorruptedMsg);
 	  msg(MsgTxt, MSG_PopUp);
 	  return (GlobalErrorFlag = SFARKLIB_ERR_CORRUPT);
 	}
@@ -669,8 +669,6 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
                     msg(MsgTxt, 0);
                     DisplayNotes((const char *)zDstBuf, OutFileName);
                 }
-		else
-			;
 
 		return true;
 }

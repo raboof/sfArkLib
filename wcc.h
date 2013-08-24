@@ -140,7 +140,7 @@ typedef ULONG						BIOWORD2;
 #define MIN(x, y)       ( ( (x) < (y) )?  (x) : (y) )
 #define MAX(x, y)       ( ( (x) > (y) )?  (x) : (y) )
 #define NZSIGN(w)       ((w) != 0)          // Used to add 1 for SignBit if value is non-zero
-#define LOWBITS(w, n)   ( (w) & (1 << (n))-1 )
+#define LOWBITS(w, n)   ( (w) & ((1 << (n))-1) )
 
 
 #if 0   // Safer methods (use in case of compile compatibility problems, etc)...
