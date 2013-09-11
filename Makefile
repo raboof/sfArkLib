@@ -1,5 +1,7 @@
 all: libsfark.so
 
+INSTALL?=install
+
 OBJECTS=sfklCoding.o sfklDiff.o sfklLPC.o sfklZip.o sfklCrunch.o sfklFile.o sfklString.o
 
 ENDIANNESS=LITTLE_ENDIAN
@@ -13,5 +15,5 @@ libsfark.so: $(OBJECTS)
 	$(CXX) -shared -dynamiclib $(OBJECTS) -o libsfark.so
 
 install: libsfark.so sfArkLib.h
-	cp libsfark.so $(DESTDIR)/usr/local/lib
-	cp sfArkLib.h $(DESTDIR)/usr/local/include
+	$(INSTALL) -D libsfark.so $(DESTDIR)/usr/local/lib/libsfark.so
+	$(INSTALL) -D sfArkLib.h $(DESTDIR)/usr/local/include/sfArkLib.h
