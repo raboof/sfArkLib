@@ -6,7 +6,7 @@ OBJECTS=sfklCoding.o sfklDiff.o sfklLPC.o sfklZip.o sfklCrunch.o sfklFile.o sfkl
 
 ENDIANNESS=LITTLE_ENDIAN
 
-CXXFLAGS+=-fPIC -D__$(ENDIANNESS)__ -Wall -Wextra -Wpedantic
+CXXFLAGS+=-fPIC -D__$(ENDIANNESS)__ -Wall -Wextra
 
 clean:
 	-rm *.o libsfark.so
