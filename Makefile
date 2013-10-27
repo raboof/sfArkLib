@@ -8,6 +8,9 @@ ENDIANNESS=LITTLE_ENDIAN
 
 CXXFLAGS+=-fPIC -D__$(ENDIANNESS)__ -Wall -Wextra
 
+# Enabled for Mac support:
+#CXXFLAGS+=-flat_namespace -undefined suppress
+
 clean:
 	-rm *.o libsfark.so
 
