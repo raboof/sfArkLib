@@ -1,4 +1,3 @@
-all: libsfark.so
 
 INSTALL?=install
 
@@ -8,15 +7,23 @@ ENDIANNESS=LITTLE_ENDIAN
 
 CXXFLAGS+=-fPIC -D__$(ENDIANNESS)__ -Wall -Wextra
 
-# Enabled for Mac support:
-#CXXFLAGS+=-flat_namespace -undefined suppress
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+LDFLAGS += -flat_namespace -undefined suppress -dynamiclib
+SO = dylib
+else
+LDFLAGS += -shared
+SO = so
+endif
+
+all: libsfark.$(SO)
 
 clean:
-	-rm *.o libsfark.so
+	-rm *.o libsfark.$(SO)
 
-libsfark.so: $(OBJECTS)
-	$(CXX) -shared -dynamiclib $(OBJECTS) -o libsfark.so
+libsfark.$(SO): $(OBJECTS)
+	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO)
 
-install: libsfark.so sfArkLib.h
-	$(INSTALL) -D libsfark.so $(DESTDIR)/usr/local/lib/libsfark.so
+install: libsfark.$(SO) sfArkLib.h
+	$(INSTALL) -D libsfark.$(SS) $(DESTDIR)/usr/local/lib/libsfark.$(SO)
 	$(INSTALL) -D sfArkLib.h $(DESTDIR)/usr/local/include/sfArkLib.h
