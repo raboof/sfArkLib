@@ -11,9 +11,10 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 LDFLAGS += -flat_namespace -undefined suppress -dynamiclib
 SO = dylib
-else
+else 
 LDFLAGS += -shared
 SO = so
+INSTALL += -D
 endif
 
 all: libsfark.$(SO)
@@ -25,5 +26,5 @@ libsfark.$(SO): $(OBJECTS)
 	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO)
 
 install: libsfark.$(SO) sfArkLib.h
-	$(INSTALL) -D libsfark.$(SO) $(DESTDIR)/usr/local/lib/libsfark.$(SO)
-	$(INSTALL) -D sfArkLib.h $(DESTDIR)/usr/local/include/sfArkLib.h
+	$(INSTALL) libsfark.$(SO) $(DESTDIR)/usr/local/lib/libsfark.$(SO)
+	$(INSTALL) sfArkLib.h $(DESTDIR)/usr/local/include/sfArkLib.h
