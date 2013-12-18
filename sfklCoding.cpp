@@ -257,7 +257,7 @@ int ReadHeader(V2_FILEHEADER *FileHeader, BYTE *fbuf, int bufsize)
     ; 							// Fall through to below (everything else is an error)
   else if (SeemsV1)					// Seems to be a sfArkV1 file
   {
-    sprintf(MsgTxt, "This file was created with sfArk V1, and this program only handles sfArk V2+ files.  Use sfArk instead."); 
+    sprintf(MsgTxt, "This file was created with sfArk V1, and this program only handles sfArk V2+ files.  Unfortunately sfArk V1 uses a proprietary compression algorithm for the non-audio metadata, so we cannot really support that. You might try running the Windows sfArk program from http://melodymachine.com/sfark.htm under Wine."); 
     msg(MsgTxt, MSG_PopUp);
     return (GlobalErrorFlag = SFARKLIB_ERR_INCOMPATIBLE);
   }
