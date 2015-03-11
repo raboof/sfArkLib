@@ -3,8 +3,8 @@ sfArkLib
 
 Library for decompressing sfArk soundfonts.
 
-If you just want to convert an sfArk file to sf2, 
-check out https://github.com/raboof/sfArkXTm
+A simple command-line tool to convert sfArk files to sf2
+based on this library can be found at https://github.com/raboof/sfArkXTm
 
 Building
 ========
