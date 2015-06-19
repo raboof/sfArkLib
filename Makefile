@@ -26,5 +26,5 @@ libsfark.$(SO): $(OBJECTS)
 	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO)
 
 install: libsfark.$(SO) sfArkLib.h
-	$(INSTALL) libsfark.$(SO) $(DESTDIR)/usr/local/lib/libsfark.$(SO)
-	$(INSTALL) sfArkLib.h $(DESTDIR)/usr/local/include/sfArkLib.h
+	$(INSTALL) libsfark.$(SO) $(DESTDIR)/usr/lib/libsfark.$(SO)
+	$(INSTALL) sfArkLib.h $(DESTDIR)/usr/include/sfArkLib.h
