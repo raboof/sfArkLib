@@ -23,7 +23,7 @@ clean:
 	-rm *.o libsfark.$(SO).0.0.0
 
 libsfark.$(SO).0.0.0: $(OBJECTS)
-	$(CXX) -shared $(LDFLAGS) -Wl,-soname,libsfark.$(SO).0 $(OBJECTS) -o libsfark.$(SO).0.0.0
+	$(CXX) -shared $(LDFLAGS) -Wl,-soname,libsfark.$(SO).0 $(OBJECTS) -o libsfark.$(SO).0.0.0 -lz
 
 install: libsfark.$(SO).0.0.0 sfArkLib.h
 	$(INSTALL) libsfark.$(SO).0.0.0 $(DESTDIR)/usr/lib/${DEB_HOST_MULTIARCH}/libsfark.$(SO).0.0.0
