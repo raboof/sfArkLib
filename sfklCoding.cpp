@@ -108,6 +108,7 @@ typedef struct
 
 const char	LicenseExt[] = ".license.txt";		// File extension for license file
 const char	NotesExt[] = ".txt";			// File extension for notes file
+const char	SfExt[] = ".sf2";			// File extension for output file
 
 static	BYTE *Zbuf1 = NULL, *Zbuf2 = NULL;
 
@@ -139,32 +140,16 @@ static	BYTE *Zbuf1 = NULL, *Zbuf2 = NULL;
 // Messages...
 const char	CorruptedMsg[]	= "- This file appears to be corrupted.";
 const char	UpgradeMsg[]		= "Please see Help/About for information on how to obtain an update.";
+char	OutFileNameMain[SFARKLIB_MAX_FILEPATH] = "";
+char	OutFileNameNotes[SFARKLIB_MAX_FILEPATH] = "";
+char	OutFileNameLicense[SFARKLIB_MAX_FILEPATH] = "";
 
 // ==============================================================
 USHORT	GetsfArkLibVersion(void)
 {
 	return (ProgVersionMaj * 10) + ProgVersionMin/10;
 }
-// ==============================================================
 
-char *ChangeFileExt(char *OutFileName, const char *NewExt, int OutFileNameSize)
-{
-	int n = strlen(OutFileName);
-	char *p;
-
-	for (p = OutFileName+n; *p != '.'; p--)
-	{
-		if (*p == '\\'  ||  p <= OutFileName)	// No extension found?
-		{
-			p = OutFileName + n;
-			break;	
-		}
-	}
-
-	n = p - OutFileName;	// Length of filename without extension
-	strncpy(p, NewExt, OutFileNameSize-1 - n);
-	return OutFileName;
-}
 // ==============================================================
 
 // Read the File Header....
@@ -303,6 +288,37 @@ int ReadHeader(V2_FILEHEADER *FileHeader, BYTE *fbuf, int bufsize)
   SetInputFilePosition(HdrOffset + HeaderLen);	// re-wind file to start of post-header data
   RETURN_ON_ERROR();
   return SFARKLIB_SUCCESS;
+}
+
+// =================================================================================
+void InitFilenames(const char *OrigFileName, const char *InFileName, const char *ReqOutFileName)
+{
+	if (ReqOutFileName)
+	{
+		ChangeFileExt(ReqOutFileName, SfExt, OutFileNameMain, sizeof(OutFileNameMain));
+		ChangeFileExt(ReqOutFileName, NotesExt, OutFileNameNotes, sizeof(OutFileNameNotes));
+		ChangeFileExt(ReqOutFileName, LicenseExt, OutFileNameLicense, sizeof(OutFileNameLicense));
+	}
+	else
+	{
+		if (strchr(OrigFileName, '/') || strchr(OrigFileName, '\\'))
+		{
+			msg("Please run Decode again and provide an output filename. We cannot use the original filename because"
+				" it contains a disallowed character.", MSG_PopUp);
+		}
+		else
+		{
+			ChangeFileExt(OrigFileName, SfExt, OutFileNameMain, sizeof(OutFileNameMain));
+			ChangeFileExt(OrigFileName, NotesExt, OutFileNameNotes, sizeof(OutFileNameNotes));
+			ChangeFileExt(OrigFileName, LicenseExt, OutFileNameLicense, sizeof(OutFileNameLicense));
+		}
+	}
+  
+	if (!OutFileNameMain[0] || !OutFileNameNotes[0] || !OutFileNameLicense[0])
+	{
+		msg("Could not get output path (path too long?)", MSG_PopUp);
+		GlobalErrorFlag = SFARKLIB_ERR_FILEIO;
+	}
 }
 
 // ==============================================================
@@ -616,11 +632,11 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
 		BYTE *zSrcBuf = (BYTE *) Blk->SrcBuf;
 		BYTE *zDstBuf = (BYTE *) Blk->DstBuf;
 
-		const char *FileExt;
+		const char *OutFileName = 0;
 		if (FileType == FLAGS_License)
-			FileExt = LicenseExt;
+			OutFileName = OutFileNameLicense;
 		else if (FileType == FLAGS_Notes)
-			FileExt = NotesExt;
+			OutFileName = OutFileNameNotes;
 		else
 			return false;
 
@@ -633,7 +649,7 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
 
 		if (n <= 0  ||  n > ZBUF_SIZE)								// Check for valid block length
 		{
-			sprintf(MsgTxt, "ERROR - Invalid length for %s file (apparently %ld bytes) %s", FileExt, n, CorruptedMsg);
+			sprintf(MsgTxt, "ERROR - Invalid length for %s file (apparently %ld bytes) %s", OutFileName, n, CorruptedMsg);
 			msg(MsgTxt, MSG_PopUp);
 			GlobalErrorFlag = SFARKLIB_ERR_CORRUPT;
 			return false;
@@ -646,10 +662,6 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
 		if (GlobalErrorFlag  ||  m > ZBUF_SIZE)														// Uncompressed ok & size is valid?
 			return false;
 
-		// Write file - Use original file name plus specified extension for OutFileName...
-		char OutFileName[MAX_FILENAME];
-		strncpy(OutFileName, Blk->FileHeader.FileName, sizeof(OutFileName));	// copy output filename
-		ChangeFileExt(OutFileName, FileExt, sizeof(OutFileName));
 		OpenOutputFile(OutFileName);	// Create notes / license file
 		WriteOutputFile(zDstBuf, m);																			// and write to output file
 		CloseOutputFile();
@@ -677,7 +689,6 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
 
 int Decode(const char *InFileName, const char *ReqOutFileName)
 {
-	char	OutFileName[MAX_FILEPATH];	// File name for current output file
 	int	NumLoops;			// Number of loops before screen update etc.
 
 	BLOCK_DATA	Blk;
@@ -720,8 +731,8 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 
 	if (GlobalErrorFlag)  return EndProcess(GlobalErrorFlag);				// Something went wrong?
 
-	if (ReqOutFileName == NULL)							// If no output filename requested
-		ReqOutFileName = FileHeader->FileName;
+	InitFilenames(FileHeader->FileName, InFileName, ReqOutFileName);
+	if (GlobalErrorFlag)  return EndProcess(GlobalErrorFlag);				// Something went wrong?
 
 	if ((FileHeader->Flags & FLAGS_License) != 0)		// License file exists?
 	{
@@ -735,9 +746,7 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 			return EndProcess(GlobalErrorFlag);
 	}
 
-        // Use original file extension for OutFileName...
-        strncpy(OutFileName, ReqOutFileName, sizeof(OutFileName));			// Copy output filename
-        OpenOutputFile(OutFileName);																		// Create the main output file...
+	OpenOutputFile(OutFileNameMain);					// Create the main output file...
 
 	// Set the decompression parameters...
 	switch (FileHeader->CompMethod)		// Depending on compression method that was used...
@@ -833,7 +842,7 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 	return EndProcess(GlobalErrorFlag);
     }
 
-    sprintf(MsgTxt, "Created %s (%ld kb) successfully.", ReqOutFileName, Blk.TotBytesWritten/1024);
+    sprintf(MsgTxt, "Created %s (%ld kb) successfully.", OutFileNameMain, Blk.TotBytesWritten/1024);
     msg(MsgTxt, 0);
     
     return EndProcess(GlobalErrorFlag);
