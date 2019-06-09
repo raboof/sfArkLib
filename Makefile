@@ -26,7 +26,7 @@ clean:
 test: libsfark.$(SO)
 	-rm -rf sfarkxtc
 	git clone https://github.com/raboof/sfarkxtc
-	CXXFLAGS=-L.. make -C sfarkxtc
+	CXXFLAGS="-I.. -L.." make -C sfarkxtc
 	rm -rf sfarkxtc
 
 libsfark.$(SO): $(OBJECTS)
