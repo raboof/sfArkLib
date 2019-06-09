@@ -205,3 +205,7 @@ extern long	UnLPC(AWORD *OutBuf, AWORD *InBuf, short bufsize, short nc, ULONG *F
 
 // sfArkLib_Zip...
 extern ULONG	UnMemcomp(const BYTE *InBuf, int InBytes, BYTE *OutBuf, int OutBufLen);
+
+ // sfArkLib_String...
+extern char *StrncpyEnsureNul(char *destination, const char *source, int num);
+void ChangeFileExt(const char *path, const char *newExtension, char *out, int outSize);

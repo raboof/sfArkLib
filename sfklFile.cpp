@@ -76,31 +76,12 @@ int	ChkErr(const char *message, const char *filename);
 
 void OpenOutputFile(const char *FileName)
 {
-  #if 1
-  int i;
-  int lenInFileName = strlen(InFileName); 
-  for (i = lenInFileName; i >= 0; i--)
-  {
-    char c = InFileName[i];
-    if (c == '\\'  || c == '/')	break;
-  }
-  
-  if (i < 0)
-    strncpy(OutFileName, FileName, sizeof(OutFileName));
-  else
-  {
-      strncpy(OutFileName, InFileName, i+1);
-      strncpy(OutFileName+i+1, FileName, sizeof(OutFileName) - (i+1));
-  }
-  #else
   strncpy(OutFileName, FileName, sizeof(OutFileName));
-  #endif
   
   //strcat(OutFileName, TempFileExt);	// Add temporary extension
   
   OutputFileHandle = CREATEFILE(OutFileName);
   if (OutputFileHandle == INVALID_HANDLE_VALUE)  ChkErr("create", OutFileName);
-  return;
 }
 // =================================================================================
 
@@ -111,7 +92,6 @@ void OpenInputFile(const char *FileName)
   InputFileHandle = OPENFILE(FileName);
   if (InputFileHandle == INVALID_HANDLE_VALUE)  ChkErr("open", InFileName);
   //else printf("OpenInputFile successful\n");
-  return;
 }
 // =================================================================================
 
