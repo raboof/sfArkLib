@@ -44,17 +44,13 @@ char *GetFileExt(char *FileName)
 
 char *StrncpyEnsureNul(char *destination, const char *source, int num)
 {
-  if (num == 0 || !destination)
+  if (num <= 0 || !destination)
   {
     return destination;
   }
   else if (!source)
   {
-    if (num > 0)
-    {
-      destination[0] = '\0';
-    }
-
+    destination[0] = '\0';
     return destination;
   }
   else
