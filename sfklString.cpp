@@ -24,7 +24,7 @@
 char *GetFileExt(char *FileName)
 {
   // return pointer to (final) file extension including the dot e.g. '.txt'
-  // returns NULL if file is not found
+  // returns NULL if extension is not found
   char *p;
 
   for(p = FileName + strlen(FileName); p > FileName; p--)
@@ -38,14 +38,23 @@ char *GetFileExt(char *FileName)
       return NULL;
     }
   }
-  
+
   return NULL;
 }
 
 char *StrncpyEnsureNul(char *destination, const char *source, int num)
 {
-  if (num == 0 || !destination || !source)
+  if (num == 0 || !destination)
   {
+    return destination;
+  }
+  else if (!source)
+  {
+    if (num > 0)
+    {
+      destination[0] = '\0';
+    }
+
     return destination;
   }
   else
@@ -65,7 +74,7 @@ void ChangeFileExt(const char *path, const char *newExtension, char *out, int ou
     out[0] = 0;
     return;
   }
-  
+
   char pathWithoutExtension[MAX_FILEPATH] = "";
   StrncpyEnsureNul(pathWithoutExtension, path, sizeof(pathWithoutExtension));
   char *p = GetFileExt(pathWithoutExtension);
@@ -74,7 +83,7 @@ void ChangeFileExt(const char *path, const char *newExtension, char *out, int ou
     // add null-terminator where the '.' used to be.
     *p = 0;
   }
-  
+
   // if there's no extension in the input, we'll simply append the new extension.
   int ret = snprintf(out, outSize, "%s%s", pathWithoutExtension, newExtension);
   if (ret < 0 || ret >= outSize)
