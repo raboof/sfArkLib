@@ -1,4 +1,3 @@
-
 INSTALL?=install
 
 OBJECTS=sfklCoding.o sfklDiff.o sfklLPC.o sfklZip.o sfklCrunch.o sfklFile.o sfklString.o
@@ -19,8 +18,16 @@ endif
 
 all: libsfark.$(SO)
 
+.PHONY: clean
+
 clean:
 	-rm *.o libsfark.$(SO)
+
+test: libsfark.$(SO)
+	-rm -rf sfarkxtc
+	git clone https://github.com/raboof/sfarkxtc
+	CXXFLAGS="-I.. -L.." make -C sfarkxtc
+	rm -rf sfarkxtc
 
 libsfark.$(SO): $(OBJECTS)
 	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO)
