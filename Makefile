@@ -38,11 +38,22 @@ endif
 INCDIR = ${PREFIX}/include
 
 all: libsfark.$(SO)
+ifneq (,$(strip ${USE_SOLINK}))
+	set -ex; for solink in ${USE_SOLINK}; do \
+		rm -f libsfark.$$solink; \
+		ln -s libsfark.$(SO) libsfark.$$solink; \
+	done
+endif
 
 .PHONY: clean
 
 clean:
 	-rm *.o libsfark.$(SO)
+ifneq (,$(strip ${USE_SOLINK}))
+	set -ex; for solink in ${USE_SOLINK}; do \
+		rm -f libsfark.$$solink; \
+	done
+endif
 
 test: libsfark.$(SO)
 	-rm -rf sfarkxtc
