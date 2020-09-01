@@ -51,7 +51,7 @@ test: libsfark.$(SO)
 	rm -rf sfarkxtc
 
 libsfark.$(SO): $(OBJECTS)
-	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO)
+	$(CXX) -shared $(LDFLAGS) $(OBJECTS) -o libsfark.$(SO) -lz
 
 # It is unclear to me whether /usr/local/* is the proper location on
 # OSX, as reportedly it's not on the clang path by default there. Let
