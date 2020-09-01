@@ -13,7 +13,7 @@ LDFLAGS += -flat_namespace -undefined suppress -dynamiclib
 SO = dylib
 else 
 LDFLAGS += -shared
-SHLIB_MAJOR:=0
+SHLIB_MAJOR:=1
 SHLIB_MINOR:=0
 SHLIB_PATCHLEVEL:=0
 ifneq (,$(filter Linux GNU/kFreeBSD GNU,${OS}))
