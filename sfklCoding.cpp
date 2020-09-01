@@ -215,7 +215,7 @@ int ReadHeader(V2_FILEHEADER *FileHeader, BYTE *fbuf, int bufsize)
     HeaderLen = V2_FILEHEADER_SIZE - sizeof(FileHeader->FileName) + strlen(FileHeader->FileName) + 1;
 
     // If we get this far, there's a good chance we've got the header...
-    #ifdef	__BIG_ENDIAN__
+    #if BYTE_ORDER == BIG_ENDIAN
       // FixEndians of all multi-byte integers (currently only relevent to Mac)
       #define FIXENDIAN(field)	FixEndian(&(FileHeader->field), sizeof(FileHeader->field))
       FIXENDIAN(Flags); 	FIXENDIAN(OriginalSize); 	FIXENDIAN(CompressedSize);
@@ -542,7 +542,7 @@ int ProcessNextBlock(BLOCK_DATA *Blk)
 	  DecompressFast(Blk, NumWords);										// Decompress
 
 	//printf("B4 WriteOutputFile: %ld\n", adler32(0, (const BYTE *) Blk->SrcBuf, n) & 0xffff);
-	#ifdef __BIG_ENDIAN__
+	#if BYTE_ORDER == BIG_ENDIAN
 	#define	WFIX(I)		s = bp[I+0]; bp[I+0] = bp[I+1]; bp[I+1] = s;
 	BYTE *bp = (BYTE *) Blk->SrcBuf; BYTE *ep = bp + n;
 	do {						
@@ -853,15 +853,11 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 // Adjust integer held at *num for this machine's endian system
 void FixEndian(void *num, int nsize)
 {
-#ifdef	__BIG_ENDIAN__
+#if BYTE_ORDER == BIG_ENDIAN
   int i;
   BYTE bb[4];
   for (i = 0; i < nsize; i++)  bb[i] = ((BYTE *) num)[i];
   for (i = 0; i < nsize; i++)  ((BYTE *) num)[i] = bb[nsize-1-i];
-#else 
-  #ifndef __LITTLE_ENDIAN__
-  #error ENDIAN system undefined
-  #endif
 #endif
 }
 
