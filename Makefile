@@ -2,11 +2,19 @@ INSTALL?=install
 
 OBJECTS=sfklCoding.o sfklDiff.o sfklLPC.o sfklZip.o sfklCrunch.o sfklFile.o sfklString.o
 
-ENDIANNESS=LITTLE_ENDIAN
-
-CXXFLAGS+=-fPIC -D__$(ENDIANNESS)__ -Wall -Wextra
+CXXFLAGS+=-fPIC -Wall -Wextra -ffloat-store
 
 OS := $(shell uname)
+
+ifneq (,$(filter Linux GNU/kFreeBSD GNU,${OS}))
+CPPFLAGS+=-DUSE_ENDIAN_H
+else ifneq (,$(findstring BSD,${OS}))
+CPPFLAGS+=-DUSE_SYS_ENDIAN_H
+else
+ENDIANNESS=LITTLE_ENDIAN
+CPPFLAGS+=-DUSE_MANUAL_ENDIANNESS -DMANUAL_${ENDIANNESS}
+endif
+
 ifeq ($(OS),Darwin)
 LDFLAGS += -flat_namespace -undefined suppress -dynamiclib
 SO = dylib
