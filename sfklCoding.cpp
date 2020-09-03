@@ -649,7 +649,7 @@ bool	ExtractTextFile(BLOCK_DATA *Blk, ULONG FileType)
 
 		if (n <= 0  ||  n > ZBUF_SIZE)								// Check for valid block length
 		{
-			sprintf(MsgTxt, "ERROR - Invalid length for %s file (apparently %ld bytes) %s", OutFileName, n, CorruptedMsg);
+			sprintf(MsgTxt, "ERROR - Invalid length for %s file (apparently %d bytes) %s", OutFileName, n, CorruptedMsg);
 			msg(MsgTxt, MSG_PopUp);
 			GlobalErrorFlag = SFARKLIB_ERR_CORRUPT;
 			return false;
@@ -842,7 +842,7 @@ int Decode(const char *InFileName, const char *ReqOutFileName)
 	return EndProcess(GlobalErrorFlag);
     }
 
-    sprintf(MsgTxt, "Created %s (%ld kb) successfully.", OutFileNameMain, Blk.TotBytesWritten/1024);
+    sprintf(MsgTxt, "Created %s (%d KiB) successfully.", OutFileNameMain, Blk.TotBytesWritten/1024);
     msg(MsgTxt, 0);
     
     return EndProcess(GlobalErrorFlag);

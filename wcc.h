@@ -87,17 +87,17 @@
 // ----- typdefs -----
 typedef unsigned short		USHORT;
 typedef unsigned char		BYTE;
-typedef unsigned long		ULONG;
+typedef unsigned int		ULONG;
 //typedef int			bool;
 
-typedef short							AWORD;				// Audio word (i.e., 16-bit audio)
+typedef short			AWORD;		// Audio word, i.e. 16-bit audio
 typedef unsigned short		UAWORD;
-typedef long		 					LAWORD;				// "long" audio word i.e. 32 bits
-typedef unsigned long			ULAWORD;
+typedef int			LAWORD;		// "long" audio word, i.e. 32 bits
+typedef unsigned int		ULAWORD;
 
 // Types used by Bit I/O (BIO) routines...
-typedef USHORT					BIOWORD;   
-typedef ULONG						BIOWORD2;
+typedef USHORT					BIOWORD;
+typedef ULONG					BIOWORD2;
 
 // -------------------
 
