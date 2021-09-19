@@ -18,3 +18,11 @@ Building
     $ sudo make install
     $ sudo ldconfig
 
+Building with nix (no other prerequisites)
+========
+
+    $ nix-build
+
+Development shell:
+
+    $ nix-shell
